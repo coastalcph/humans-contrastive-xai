@@ -5,7 +5,7 @@ from os.path import join
 import re
 from tqdm import tqdm
 import numpy as np
-from tokenization_utils import merge_subwords_words
+from xai.xai_utils.tokenization_utils import merge_subwords_words
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import spearmanr
@@ -29,18 +29,17 @@ def rat_num(len_sen, rationale):
 @click.option('--xai_method', default='lrp')
 # @click.option('--dataset_name', default="sst2", help='name of dataset_name')
 def main(modelname, model_type, importance_aggregator, results_dir_base, xai_method):
-
     df_results = {}
-    
+
     for dataset_name in ['sst2', 'dynasent']:
 
         results_dir = join(results_dir_base, f'roberta-base-{dataset_name}')
-    
+
         # loading human annotations
         if dataset_name == 'sst2':
             annotation = pd.read_csv('./data/rationales-demographics/SST_annot_before_exclusions.csv') \
                 .query("label==original_label").query("attentioncheck=='PASSED'")
-            df_gaze = pd.read_pickle('./data/SST_lrp/sst_importance.pkl')
+            df_gaze = pd.read_pickle('./data/SST/sst_importance.pkl')
         elif dataset_name == 'dynasent':
             annotation = pd.read_csv('./data/rationales-demographics/dynasent_annot_before_exclusions.csv') \
                 .query("label==original_label").query("attentioncheck=='PASSED'")
@@ -58,19 +57,21 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
         relevance_dict = {}
         relevance_dict_val = {}
         relevance_dict['non-contrastive'] = pickle.load(
-            open(join(results_dir, f'relevance_true_{xai_method}_{modelbase}.pkl'), 'rb')).drop_duplicates(subset=['tokens'])
+            open(join(results_dir, f'relevance_true_{xai_method}_{modelbase}.pkl'), 'rb')).drop_duplicates(
+            subset=['tokens'])
         relevance_dict['contrastive'] = pickle.load(
-            open(join(results_dir, f'relevance_contrastive_{xai_method}_{modelbase}.pkl'), 'rb')).drop_duplicates(subset=['tokens'])
+            open(join(results_dir, f'relevance_contrastive_{xai_method}_{modelbase}.pkl'), 'rb')).drop_duplicates(
+            subset=['tokens'])
         relevance_dict_val['contrastive'] = pickle.load(
-            open(join(results_dir, f'relevance_validation_contrastive_{xai_method}_{modelbase}.pkl'), 'rb')).drop_duplicates(subset=['tokens'])
+            open(join(results_dir, f'relevance_validation_contrastive_{xai_method}_{modelbase}.pkl'),
+                 'rb')).drop_duplicates(subset=['tokens'])
         relevance_dict_val['non-contrastive'] = pickle.load(
-            open(join(results_dir, f'relevance_validation_true_{xai_method}_{modelbase}.pkl'), 'rb')).drop_duplicates(subset=['tokens'])
+            open(join(results_dir, f'relevance_validation_true_{xai_method}_{modelbase}.pkl'), 'rb')).drop_duplicates(
+            subset=['tokens'])
         relevance_dict['contrastive'] = pd.concat([relevance_dict['contrastive'], relevance_dict_val['contrastive']])
         relevance_dict['non-contrastive'] = pd.concat(
             [relevance_dict['non-contrastive'], relevance_dict_val['non-contrastive']])
 
-
-    
         # Importance aggregator
         if importance_aggregator == 'max':
             importance_aggregator_name = importance_aggregator
@@ -83,12 +84,12 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
             importance_aggregator_func = np.sum
         else:
             raise NotImplementedError
-    
+
         merging_error = 0
         missing = 0
         valid_samples = 0
         valid_gaze_samples = 0
-    
+
         df_results[dataset_name] = pd.DataFrame(columns=['gaze', 'annotations', 'non-contrastive', 'contrastive'])
         y_pred_old = []
         y_pred_cont_old = []
@@ -139,7 +140,7 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
                         continue
                         # print(f' \n error when merging {normalized_text}')
 
-                    if dataset_name=='sst2':
+                    if dataset_name == 'sst2':
                         try:
                             text_id = ann_tmp.iloc[0]['originaldata_id']
                             gaze_tmp = df_gaze.query("text_id==@text_id").iloc[0]['relfix']
@@ -165,7 +166,7 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
                     # print(f"couldn't find {normalized_text}")
                     continue
 
-            from sklearn.metrics import f1_score, cohen_kappa_score, roc_auc_score
+            from sklearn.metrics import f1_score, cohen_kappa_score
 
             print(f'Valid samples: {valid_samples}')
             print(mode, '\n')
@@ -181,31 +182,37 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
                 print('f1:', f1_score(y_gaze, y_pred_gaze))
                 print('cohen:', cohen_kappa_score(y_gaze, y_pred_gaze), '\n')
 
-                df_results[dataset_name].loc['gaze', mode] = np.around(cohen_kappa_score(y_gaze, y_pred_gaze), decimals=2)
-                df_results[dataset_name].loc[mode, 'gaze'] = np.around(cohen_kappa_score(y_gaze, y_pred_gaze), decimals=2)
+                df_results[dataset_name].loc['gaze', mode] = np.around(cohen_kappa_score(y_gaze, y_pred_gaze),
+                                                                       decimals=2)
+                df_results[dataset_name].loc[mode, 'gaze'] = np.around(cohen_kappa_score(y_gaze, y_pred_gaze),
+                                                                       decimals=2)
 
                 print('comparison model - gaze')
                 print('f1:', f1_score(y_true_gaze, y_gaze))
                 print('cohen:', cohen_kappa_score(y_true_gaze, y_gaze), '\n')
 
-                df_results[dataset_name].loc['annotations', 'gaze'] = np.around(cohen_kappa_score(y_true_gaze, y_gaze), decimals=2)
-                df_results[dataset_name].loc['gaze', 'annotations'] = np.around(cohen_kappa_score(y_true_gaze, y_gaze), decimals=2)
+                df_results[dataset_name].loc['annotations', 'gaze'] = np.around(cohen_kappa_score(y_true_gaze, y_gaze),
+                                                                                decimals=2)
+                df_results[dataset_name].loc['gaze', 'annotations'] = np.around(cohen_kappa_score(y_true_gaze, y_gaze),
+                                                                                decimals=2)
 
                 print('gaze cont vs model cont', spearmanr(y_gaze_cont, y_pred_cont_gaze))
 
-            y_pred_old = y_pred if len(y_pred_old)==0 else y_pred_old
+            y_pred_old = y_pred if len(y_pred_old) == 0 else y_pred_old
             y_pred_cont_old = y_pred_cont if len(y_pred_cont_old) == 0 else y_pred_cont_old
 
         print('model cont vs model cont', spearmanr(y_pred_cont_old, y_pred_cont))
 
-        df_results[dataset_name].loc['contrastive', 'non-contrastive'] = np.around(cohen_kappa_score(y_pred, y_pred_old),
-                                                                     decimals=2)
-        df_results[dataset_name].loc['non-contrastive', 'contrastive'] = np.around(cohen_kappa_score(y_pred, y_pred_old),
-                                                                     decimals=2)
+        df_results[dataset_name].loc['contrastive', 'non-contrastive'] = np.around(
+            cohen_kappa_score(y_pred, y_pred_old),
+            decimals=2)
+        df_results[dataset_name].loc['non-contrastive', 'contrastive'] = np.around(
+            cohen_kappa_score(y_pred, y_pred_old),
+            decimals=2)
 
     # fig, axs = plt.subplots(nrows=1, ncols=2, figsize=[6, 4], sharey=True)
     #
-    fig = plt.figure(figsize=[2.5,1.5])
+    fig = plt.figure(figsize=[2.5, 1.5])
     vmin = np.nanmin(df_results['sst2'].values)
     df_plot = df_results['sst2'].fillna(0).loc[
         ['gaze', 'annotations', 'contrastive'], ['annotations', 'contrastive', 'non-contrastive']]
@@ -224,7 +231,6 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
 
     plt.savefig('sst.png', dpi=300, bbox_inches='tight')
     plt.close()
-
 
     fig = plt.figure(figsize=[2, 1])
     # cbar_ax = fig.add_axes([.91, .3, .01, .4])
@@ -250,7 +256,8 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
 
     # fig = plt.figure(figsize=[4, 3])
     vmin = np.nanmin(df_results['sst2'].values)
-    df_plot = df_results['sst2'].fillna(0).loc[['annotations', 'contrastive', 'non-contrastive'], ['contrastive', 'non-contrastive', 'gaze']]
+    df_plot = df_results['sst2'].fillna(0).loc[
+        ['annotations', 'contrastive', 'non-contrastive'], ['contrastive', 'non-contrastive', 'gaze']]
     mask = np.triu(np.ones_like(df_results['sst2'], dtype=bool))
     sns.heatmap(df_plot,
                 ax=axs[0],
@@ -271,7 +278,8 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
 
     # elif dataset_name == 'dynasent':
     #     fig = plt.figure(figsize=[3, 2])
-    df_plot = df_results['dynasent'].fillna(0).loc[['annotations', 'contrastive', 'non-contrastive'], ['contrastive', 'non-contrastive', 'gaze']]
+    df_plot = df_results['dynasent'].fillna(0).loc[
+        ['annotations', 'contrastive', 'non-contrastive'], ['contrastive', 'non-contrastive', 'gaze']]
     df_plot['gaze'] = np.nan
     mask = np.triu(np.ones_like(df_results['dynasent'], dtype=bool))[:, :-1]
     sns.heatmap(df_plot,

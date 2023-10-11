@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-from sklearn.metrics import cohen_kappa_score, f1_score
+from sklearn.metrics import cohen_kappa_score
 import numpy as np
-from prodigy_annotations_utils import read_annotations, EXCLUDED_ANNOTATORS, EXCLUDED__SCREEN_ANNOTATORS
+from xai.xai_utils.prodigy_annotations_utils import read_annotations, EXCLUDED_ANNOTATORS, EXCLUDED__SCREEN_ANNOTATORS
 
 CONTRASTIVE_COMMON_SET = 9
 CONTRASTIVE_FILENAME = "contrastive_screening"

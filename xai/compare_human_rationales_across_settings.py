@@ -2,11 +2,10 @@ import pickle
 import re
 from os.path import join
 import click
-from prodigy_annotations_utils import aggregate_annotations, EXCLUDED_ANNOTATORS
+from xai.xai_utils.prodigy_annotations_utils import aggregate_annotations, EXCLUDED_ANNOTATORS
 from utils import set_up_dir
 from sklearn.metrics import cohen_kappa_score, f1_score
 import numpy as np
-import nltk
 from nltk.corpus import stopwords
 ENGLISH_STOPWORDS = set(stopwords.words('english'))
 

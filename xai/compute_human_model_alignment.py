@@ -6,8 +6,8 @@ import numpy as np
 import click
 from os.path import join
 from tqdm import tqdm
-from tokenization_utils import merge_subwords_words
-from prodigy_annotations_utils import aggregate_annotations, EXCLUDED_ANNOTATORS
+from xai.xai_utils.tokenization_utils import merge_subwords_words
+from xai.xai_utils.prodigy_annotations_utils import aggregate_annotations, EXCLUDED_ANNOTATORS
 
 @click.command()
 @click.option('--modelname', default="coastalcph/gpt2-small-biosbias", help='path to finetuned model on hf')

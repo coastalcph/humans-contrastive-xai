@@ -1,13 +1,11 @@
-import os
 import pandas as pd
-import scipy
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import re
 import scipy
 
-from xai.prodigy_annotations_utils import read_annotations, aggregate_annotations, \
+from xai.xai_utils.prodigy_annotations_utils import read_annotations, aggregate_annotations, \
     EXCLUDED_ANNOTATORS, EXCLUDED__SCREEN_ANNOTATORS
 
 STANDARD_FILENAME = "standard_biosbias_rationales"

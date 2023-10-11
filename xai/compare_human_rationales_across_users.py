@@ -2,7 +2,7 @@ import pickle
 import re
 from os.path import join
 import click
-from prodigy_annotations_utils import read_annotations, EXCLUDED_ANNOTATORS
+from xai.xai_utils.prodigy_annotations_utils import read_annotations, EXCLUDED_ANNOTATORS
 from sklearn.metrics import cohen_kappa_score, f1_score
 from nltk.corpus import stopwords
 import numpy as np

@@ -6,7 +6,7 @@ from sklearn.metrics import mean_squared_error
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from tokenization_utils import merge_roberta_tokens
+from xai.xai_utils.tokenization_utils import merge_roberta_tokens
 from utils import set_up_dir
 import os
 import scipy

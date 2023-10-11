@@ -4,13 +4,11 @@ import json
 import pickle
 import numpy as np
 import pandas as pd
-from typing import Dict
 from os.path import join
-from collections import Counter, OrderedDict, defaultdict
-from scipy.stats import entropy
-from xai.prodigy_annotations_utils import read_annotations, aggregate_annotations, \
+from collections import Counter, OrderedDict
+from xai.xai_utils.prodigy_annotations_utils import read_annotations, aggregate_annotations, \
     EXCLUDED_ANNOTATORS, EXCLUDED__SCREEN_ANNOTATORS
-from xai.tokenization_utils import merge_subwords_words
+from xai.xai_utils.tokenization_utils import merge_subwords_words
 
 STANDARD_FILENAME = "standard_biosbias_rationales"
 CONTRASTIVE_FILENAME = "contrastive_biosbias_rationales"
