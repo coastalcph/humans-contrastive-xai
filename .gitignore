@@ -1,0 +1,11 @@
+__pycache__/
+.idea/
+.ipynb_checkpoints
+data/SST_lrp/*
+*.DS_Store
+*~$*
+notebooks/.ipynb_checkpoints/
+*.sh
+bin/
+*.pkl
+*.png
