@@ -48,12 +48,58 @@ python train_models/finetune_model.py \
 
 ## Available Fine-tuned Models
 
-| Model Name                            | Dataset                |
-|---------------------------------------|------------------------|
- | `coastalcph/roberta-base-sst2`        | `sst2`                 |
-| `coastalcph/roberta-base-dynasent`    | `dynabench/dynasent`   |
+| Model Name                                                            | Dataset                                            |
+|-----------------------------------------------------------------------|----------------------------------------------------|
+ | `coastalcph/roberta-{small, base, large}-sst2`                        | `sst2`                                             |
+| `coastalcph/roberta-base-dynasent`                                    | `dynabench/dynasent`                               |
+| `coastalcph/{gpt2, roberta, t5}-{small, base, large}-dbpedia-animals` | `coastalcph/dbpedia-datasets`                      |
+| `coastalcph/{gpt2, roberta, t5}-{small, base, large}-dbpedia-animals` | `coastalcph/xai_fairness_benchmark` |
 
 
-## How to explain a model's predictions?
 
-TODO
+## Explanations
+### How to explain a model's predictions?
+
+```shell
+MODEL='roberta-base'
+DATASET='sst2' # 'dynabench/dynasent'
+MODE = true #foil, contrastive
+SPLIT = test #validation
+XAI_METHOD = lrp #gi, lrp_norm
+
+python ./xai/extract_lrp_relevance.py \  
+    --modelname coastalcph/${MODEL}-${DATASET} \
+    --dataset_name ${DATASET} \
+    --case ${XAI_METHOD} \
+    --mode ${MODE} \
+    --dataset_split ${SPLIT}
+    
+```
+
+### How to run comparison across settings and humans/models?
+
+```shell
+python ./xai/xai_comparison.py \
+    --source_path ./results/${MODEL}-${DATASET} \
+    --xai_method ${XAI_METHOD} \
+    --modelname ${MODEL}
+    
+python ./xai/compute_human_model_alignment.py \
+    --modelname coastalcph/${MODEL}-${DATASET} \
+    --dataset_name ${DATASET} \
+    --model_type ${MODELTYPE} \
+    --importance_aggregator ${AGGREGATOR} \
+    --annotations_filename standard_biosbias_rationales \
+    --results_dir ./results/${MODEL}-${DATASET}
+  
+python ./xai/compute_human_model_alignment.py \
+    --modelname coastalcph/${MODEL}-${DATASET} \
+    --dataset_name ${DATASET} \
+    --model_type ${MODELTYPE} \
+    --importance_aggregator ${AGGREGATOR} \
+    --annotations_filename contrastive_biosbias_rationales \
+    --results_dir ./results/${MODEL}-${DATASET}
+  
+python ./xai/compare_human_rationales_across_settings.py \
+    --results_dir ./results/${MODEL}-${DATASET}
+```
