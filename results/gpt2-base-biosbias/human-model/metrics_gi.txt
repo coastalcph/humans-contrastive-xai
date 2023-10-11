@@ -1,0 +1,36 @@
+cohen
+               model_contr  model_non-contr
+hum_contr             0.16             0.14
+hum_non-contr         0.25             0.25
+
+\begin{tabular}{lrr}
+{} & {model_contr} & {model_non-contr} \\
+hum_contr & 0.160000 & 0.140000 \\
+hum_non-contr & 0.250000 & 0.250000 \\
+\end{tabular}
+
+
+cohen
+               model_contr  model_non-contr
+hum_contr             0.23             0.32
+hum_non-contr         0.26             0.32
+
+\begin{tabular}{lrr}
+{} & {model_contr} & {model_non-contr} \\
+hum_contr & 0.230000 & 0.320000 \\
+hum_non-contr & 0.260000 & 0.320000 \\
+\end{tabular}
+
+
+cohen
+               model_contr  model_non-contr
+hum_contr             0.11             0.11
+hum_non-contr         0.18             0.17
+
+\begin{tabular}{lrr}
+{} & {model_contr} & {model_non-contr} \\
+hum_contr & 0.110000 & 0.110000 \\
+hum_non-contr & 0.180000 & 0.170000 \\
+\end{tabular}
+
+

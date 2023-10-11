@@ -1,0 +1,3 @@
+correlation0.4
+mse220524.76
+

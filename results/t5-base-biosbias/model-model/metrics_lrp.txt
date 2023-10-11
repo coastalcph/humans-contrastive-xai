@@ -1,0 +1,3 @@
+correlation0.48
+mse27.71
+

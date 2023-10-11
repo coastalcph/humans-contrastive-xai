@@ -1,0 +1,11 @@
+              precision    recall  f1-score   support
+
+psychologist       0.93      0.92      0.93       279
+     surgeon       0.91      0.84      0.88       159
+       nurse       0.84      0.86      0.85       195
+     dentist       0.97      0.98      0.98       197
+   physician       0.78      0.81      0.80       170
+
+    accuracy                           0.89      1000
+   macro avg       0.89      0.89      0.89      1000
+weighted avg       0.89      0.89      0.89      1000
