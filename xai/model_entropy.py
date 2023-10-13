@@ -9,7 +9,6 @@ import re
 import scipy
 from os.path import join
 
-
 def main(root_dir_, dataset, xai_method):
     cm = plt.get_cmap('Set1')
     colors = cm.colors
@@ -91,7 +90,7 @@ def main(root_dir_, dataset, xai_method):
 
 
 if __name__ == "__main__":
-    root = "/Users/sxk199/mnt/nlp/data/humans-contrastiveXAI"
+    root = "../results"
     dataset = ["biosbias", "dbpedia-animals"]
     xai_methods = ["lrp"]  
     for d in dataset:
