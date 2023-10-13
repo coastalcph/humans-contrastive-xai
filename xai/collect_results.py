@@ -85,12 +85,11 @@ def main(modelname, dataset_name, results_dir, xai_method):
                 ax[1].set_yticklabels(ax[1].get_yticklabels(), rotation=0)
                 fig.savefig(join(results_dir, f'human-human/{aggregation_method}.png'), dpi=300, bbox_inches='tight')
                 plt.close()
-            #somehow this does not run on hendrix
+
             except TypeError:
                 print('error')
                 pass
             print(aggregation_method)
-            # print(df.style.to_latex(), '\n\n')
             print(df.to_string())
 
             with open(join(results_dir, f'human-human/metrics_{aggregation_method}.txt'), 'w') as f:
@@ -118,7 +117,6 @@ def main(modelname, dataset_name, results_dir, xai_method):
                     join(results_dir, f'human-model/non-contrastive_f1_cohen_{xai_method}_{importance_aggregator}.pkl'),
                     'rb'))
 
-            # metrics = ['cohen']
             metric = 'cohen'
             selected_classes = ['physician', 'dentist', 'all']
             df = {}
@@ -132,18 +130,12 @@ def main(modelname, dataset_name, results_dir, xai_method):
                                                           scores_noncontrastive[metric]['non-contrastive'][
                                                               current_class]]
 
-            # vmin = np.min([np.min(df['f1'].values), np.min(df['cohen'].values)])
-            # vmax = np.max([np.max(df['f1'].values), np.max(df['cohen'].values)])
-
             for ii, current_class in enumerate(selected_classes):
                 # if metric in ['f1', 'cohen']:
                 sns.heatmap(df[current_class], ax=axs[ii], vmin=0.1, vmax=0.55, annot=True,
                             cmap='mako',
                             square=True)
-                # else:
-                #     sns.heatmap(df[metric], ax=axs[ii], annot=True,
-                #                 cmap='mako',
-                #                 square=True)
+
                 axs[ii].tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
                 axs[ii].set_title(current_class)
 
@@ -160,9 +152,6 @@ def main(modelname, dataset_name, results_dir, xai_method):
                         f.write(df[metric][current_class].round(2).to_latex())
                     f.write('\n\n')
 
-            # plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-            # cax = plt.axes([0.85, 0.1, 0.075, 0.8])
-            # plt.colorbar(plot_cohen, cax=cax)
 
             plt.savefig(join(results_dir, f'human-model/{importance_aggregator}_{xai_method}.png'), dpi=300,
                         bbox_inches='tight')

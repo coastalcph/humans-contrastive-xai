@@ -80,18 +80,14 @@ class LayerNormXAI(nn.Module):
 
         elif self.mode == 'distillnorm' or self.mode == 'bertnorm':
             mean = input.mean(dim=-1, keepdim=True)
-            std = torch.std(input, dim=-1, keepdim=True, unbiased=False) # unbiased deactivates Bessel's correction
-            std_real = torch.sqrt(((input - mean) ** 2).sum(dim=-1, keepdims=True) / input.shape[-1])
-            if not torch.all(std.eq(std_real)):
-                logging.debug("STD calculation if off!")
             std = torch.sqrt(((input - mean) ** 2).sum(dim=-1, keepdims=True) / input.shape[-1])
 
             if self.mean_detach:
                 mean = mean.detach()
             if self.std_detach:
                 std = std.detach()
+                
             input_norm = (input - mean) / (std + self.eps)
-
             input_norm = input_norm * self.weight + self.bias
 
             return input_norm

@@ -14,9 +14,6 @@ from os.path import join
 import click
 
 
-# source_path = 'results/23052023_animals_gpt2/dbpedia-animals'
-# source_path = 'results/23052023_biosbias_gpt2/biosbias'
-
 @click.command()
 @click.option('--modelname', default='gpt2')
 @click.option('--xai_method', default='lrp')
@@ -139,10 +136,6 @@ def main(modelname, xai_method, correct_only, source_path, plotting):
     if plotting:
 
         min_idx = np.argsort(correlation)
-        # min_idx = [20, 68]
-
-        # min_idx = np.argsort(logit_diff)[:25]
-        # import pdb;pdb.set_trace()
 
         for idx in [20,68, 220, 1839, 1840]:
         # for idx in range(len(data_true)):
@@ -196,7 +189,6 @@ def main(modelname, xai_method, correct_only, source_path, plotting):
             axs[0].set_xticks([])
             axs[0].set_yticks([])
 
-            # plot_sentence(words, R, H0=140, W0=200, fax=(fig, axs[0]))
             if 't5' not in modelname:
                 title = 'prediction {} p={}'.format(idx2label[label], '{:0.2f}'.format(probs[label]))
                 axs[0].set_title(title, fontsize=12)
@@ -211,7 +203,6 @@ def main(modelname, xai_method, correct_only, source_path, plotting):
                                                              sep_token="▁")
 
             # Plot foil
-
             append = [0 for _ in range(threshold - len(words[start_end[0]:start_end[1]]) % threshold)]
             tok_append = ['PAD' for _ in range(len(append))]
             reshape = (-1, threshold)
@@ -239,7 +230,6 @@ def main(modelname, xai_method, correct_only, source_path, plotting):
                                                           data_contrast.iloc[idx]['attention'],
                                                           sep_token="▁")
 
-            # assert foil != label
 
             # Normalize contrastive explanation by its maximal relevance score
             r_normalization = np.max(np.abs(contrastive[start_end[0]:start_end[1]]))

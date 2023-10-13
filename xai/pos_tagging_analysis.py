@@ -23,21 +23,16 @@ def preview_rationales_2_print(rationales):
     result = []
     annotation = False
     for idx, (key, rationale) in enumerate(rationales.items()):
-        # print(f'Example {idx + 1}:', end=' ')
         line = f'{idx + 1}: '
         for token, score in rationale:
             if score == 1 and annotation is False:
-                # print('[ ' + token, end=' ')
                 line += '[ ' + token + ' '
                 annotation = True
             elif score == 0 and annotation is True:
-                # print('] ' + token, end=' ')
                 line += '] ' + token + ' '
                 annotation = False
             else:
-                # print(token, end=' ')
                 line += token + ' '
-        # print('\n' + '-' * 150)
         result.append(line+'\n')
     return result
 
@@ -91,12 +86,10 @@ def analyze_annotator_rationales(gender_wordlist, class_names):
         # Flatten list to count on simple pos tagging (not taking into account the order)
         tagging_rationales_values = [w for sequence in tagging_rationales_pos.values() for w in sequence]
         print("POS: The simple UPOS part-of-speech tag.")
-        # print(Counter(tagging_rationales_values))
         c = Counter(tagging_rationales_values)
         print(
             [(i, np.round(c[i] / len(tagging_rationales_values) * 100.0, 2)) for i, count in c.most_common()]
         )
-        # print(f"{len(gender.values())} words with grammatical gender M/F selected.")
         for k, v in gender.items():
             print(k, Counter(gender[k]))
 
@@ -109,7 +102,6 @@ def analyze_annotator_rationales(gender_wordlist, class_names):
         # Flatten list to count on simple pos tagging (not taking into account the order)
         tagging_rationales_values = [w for sequence in tagging_rationales_tag.values() for w in sequence]
         print("Tag: The detailed part-of-speech tag.")
-        # print(Counter(tagging_rationales_values))
         c = Counter(tagging_rationales_values)
         print(
             [(i, np.round(c[i] / len(tagging_rationales_values) * 100.0, 2)) for i, count in c.most_common()]
@@ -207,7 +199,6 @@ def analyze_model_rationales(root_dir_, gender_wordlist, dataset, xai_method,
                     # Check if we have annotations for this text
                     norm = re.sub('[^a-z]', '', xx['data']['text'].lower())
                     if norm in annotations:
-                        # topk = len(rationales_length[norm])
                         if topk > 0:
                             topk_max_args = np.argpartition(word_importances, -topk)[-topk:]
                             examples_with_annotations[xx['data']['text']] = topk_max_args
@@ -246,7 +237,6 @@ if __name__ == "__main__":
     if humans:
         analyze_annotator_rationales(gender_wordlist, class_names)
     else:
-        # root = "/Users/sxk199/mnt/nlp/data/humans-contrastiveXAI"
         root = "../results"
         dataset = ["biosbias", "dbpedia-animals"]
         xai_method = ["lrp", "gi", "gi_norm"]

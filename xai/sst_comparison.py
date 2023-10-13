@@ -27,7 +27,6 @@ def rat_num(len_sen, rationale):
 @click.option('--importance_aggregator', default="max", help='aggregation method (max, mean, sum)')
 @click.option('--results_dir_base', default='./results')
 @click.option('--xai_method', default='lrp')
-# @click.option('--dataset_name', default="sst2", help='name of dataset_name')
 def main(modelname, model_type, importance_aggregator, results_dir_base, xai_method):
     df_results = {}
 
@@ -163,7 +162,6 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
 
                 else:
                     missing += 1
-                    # print(f"couldn't find {normalized_text}")
                     continue
 
             from sklearn.metrics import f1_score, cohen_kappa_score
@@ -254,7 +252,6 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=[6, 3], sharey=True)
     cbar_ax = fig.add_axes([.8, .2, .03, .6])
 
-    # fig = plt.figure(figsize=[4, 3])
     vmin = np.nanmin(df_results['sst2'].values)
     df_plot = df_results['sst2'].fillna(0).loc[
         ['annotations', 'contrastive', 'non-contrastive'], ['contrastive', 'non-contrastive', 'gaze']]
@@ -270,14 +267,7 @@ def main(modelname, model_type, importance_aggregator, results_dir_base, xai_met
                 mask=~mask[1:, 1:])
     axs[0].set_title("SST2")
     axs[0].set_xticks([0.5, 1.5, 2.5], ['contr.lrp', 'non-contr.lrp', 'gaze'], rotation=30, ha='right')
-    # plt.yticks([0.5, 1.5, 2.5], ['gaze', 'annotations', 'contr.lrp'])
-    # plt.xticks([0.5, 1.5, 2.5], ['annotations', 'contr.lrp', 'non-contr.lrp'])
 
-    # plt.savefig('sst.png', dpi=300, bbox_inches='tight')
-    # plt.close()
-
-    # elif dataset_name == 'dynasent':
-    #     fig = plt.figure(figsize=[3, 2])
     df_plot = df_results['dynasent'].fillna(0).loc[
         ['annotations', 'contrastive', 'non-contrastive'], ['contrastive', 'non-contrastive', 'gaze']]
     df_plot['gaze'] = np.nan

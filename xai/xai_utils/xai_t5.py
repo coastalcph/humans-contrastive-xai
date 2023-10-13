@@ -268,7 +268,6 @@ class T5ForConditionalGenerationXAI(T5ForConditionalGeneration):
 
         self.decoder.final_layer_norm = T5LayerNormXAI(decoder_config.d_model, eps=eps)
 
-    #  @torch.no_grad()
     def generate_xai(
             self,
             inputs: Optional[torch.Tensor] = None,
@@ -362,8 +361,6 @@ class T5ForConditionalGenerationXAI(T5ForConditionalGeneration):
                     - [`~generation.BeamSearchEncoderDecoderOutput`],
                     - [`~generation.BeamSampleEncoderDecoderOutput`]
         """
-
-        #  self.explain_ids = explain_ids
 
         if synced_gpus is None:
             if is_deepspeed_zero3_enabled() and dist.get_world_size() > 1:
@@ -481,8 +478,6 @@ class T5ForConditionalGenerationXAI(T5ForConditionalGeneration):
                 bos_token_id=generation_config.bos_token_id,
                 device=inputs_tensor.device,
             )
-
-        # self.xai_dict[2] = {'_prepare_decoder_input_ids_for_generation': self._prepare_decoder_input_ids_for_generation}
 
         else:
             input_ids = inputs_tensor if model_input_name == "input_ids" else model_kwargs.pop("input_ids")
@@ -894,8 +889,6 @@ class T5ForConditionalGenerationXAI(T5ForConditionalGeneration):
                     output_hidden_states=False,
                 )
 
-                # logits_xai = logits_processor(input_ids, outputs_xai.logits[:,-1,:])
-
                 logits_xai = outputs_xai.logits[:, -1, :]
                 logits_all = logits_xai[:, explain_ids].squeeze()
                 logits_sort = torch.flip(logits_all.argsort(), dims=(0,)).squeeze()
@@ -943,7 +936,6 @@ class T5ForConditionalGenerationXAI(T5ForConditionalGeneration):
                 self.Ls.append(selected_logit.detach().cpu().numpy().squeeze().sum())
                 self.Gids.append(next_tokens.detach().cpu().numpy())
 
-            # print(input_ids, model_inputs['decoder_input_ids'], next_tokens, next_tokens_scores[:, next_tokens])
 
             # finished sentences should have their next token be a padding token
             if eos_token_id is not None:

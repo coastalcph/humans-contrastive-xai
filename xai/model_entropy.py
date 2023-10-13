@@ -52,7 +52,6 @@ def main(root_dir_, dataset, xai_method):
             for ix, xx in relevance_dict[mode].iterrows():
                 scores = xx['attention']
                 e = scipy.stats.entropy(np.abs(scores))
-                # e = scipy.stats.entropy(np.clip(scores, a_min=0., a_max=None))
                 entropy_scores[modelname][mode].append(e)
 
                 entropy_scores_plot["model"].append(model2idx[modelname])
@@ -87,7 +86,6 @@ def main(root_dir_, dataset, xai_method):
     ax.set_xticklabels([name for name in models if name not in file_not_found], rotation=10)
     ax.set_ylabel('entropy')
     ax.set_title(f"{dataset} ({xai_method.upper()})")
-    # plt.show()
 
     plt.savefig(f"../bin/entropy_{dataset}_{xai_method}.png")
 
@@ -95,7 +93,7 @@ def main(root_dir_, dataset, xai_method):
 if __name__ == "__main__":
     root = "/Users/sxk199/mnt/nlp/data/humans-contrastiveXAI"
     dataset = ["biosbias", "dbpedia-animals"]
-    xai_methods = ["lrp"]  #"gi", "gi_norm"]
+    xai_methods = ["lrp"]  
     for d in dataset:
         for m in xai_methods:
             main(root, d, m)

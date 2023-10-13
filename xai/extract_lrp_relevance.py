@@ -35,16 +35,6 @@ class Zero(nn.Identity):
         return torch.zeros((input.shape[0], input.shape[1], self.dim)).to(input.device)
 
 
-# python extract_lrp_relevance.py --model coastalcph/roberta-base-sst2 --dataset sst2 --lang en --case lrp --mode true
-# python extract_lrp_relevance.py --modelname michelecafagna26/t5-base-finetuned-sst2-sentiment --dataset_name sst2 --lang en --case lrp --mode true
-
-# python xai/extract_lrp_relevance.py --modelname coastalcph/t5-base-biosbias --dataset_name biosbias  --case lrp --mode true
-
-#python xai/extract_lrp_relevance.py --modelname coastalcph/roberta-base-biosbias --dataset_name biosbias  --case lrp --mode true --human_labels True
-
-#python xai/extract_lrp_relevance.py --modelname coastalcph/gpt2-large-biosbias --dataset_name biosbias  --case lrp --mode true --human_labels False
-
-
 @click.command()
 @click.option('--modelname', default='coastalcph/roberta-base-sst2')
 @click.option('--dataset_name', default='sst2')
@@ -109,7 +99,6 @@ def main(modelname, dataset_name, dataset_split, res_folder, case, mode, human_l
             tokenizer = AutoTokenizer.from_pretrained(modelname, use_auth_token=AUTH_TOKEN)
 
         # Load explainable model
-
         if case == 'lrp':
             # Load lrp model with modified forward pass
             model_xai = model_class(model.config, lrp = True)
@@ -202,7 +191,6 @@ def main(modelname, dataset_name, dataset_split, res_folder, case, mode, human_l
         else:
             generation_ids_dict = None
             
-            
         # Get label and foil from human annotations
         label_foil_lookup = get_human_label_foil_lookup() if human_labels else None
 
@@ -210,8 +198,6 @@ def main(modelname, dataset_name, dataset_split, res_folder, case, mode, human_l
             assert dataset_name == 'biosbias'
             labels_names = ['psychologist', 'surgeon', 'nurse', 'dentist', 'physician']
             labelname2idx = {v:k for k, v in enumerate(labels_names)}
-        
-        
         
         def preprocess_function(examples, padding, examples_key):
             # Tokenize the texts
@@ -282,8 +268,6 @@ def main(modelname, dataset_name, dataset_split, res_folder, case, mode, human_l
             tokens = tokenizer.convert_ids_to_tokens(inputs_)
             inputs_ = torch.tensor(inputs_).unsqueeze(0)
 
-            # assert len(data['input_ids']) == len(data['input_ids_scores'])
-
             example_id = ii
             y_true = tokenized_dataset[ii]['label']
 
@@ -350,8 +334,6 @@ def main(modelname, dataset_name, dataset_split, res_folder, case, mode, human_l
                     else:
                         logit_func =lambda x: x[:, y_pred] 
 
-                 #   import pdb;pdb.set_trace()
-
                 elif mode == 'foil':
                     # Explain true label
                     if not human_labels:
@@ -395,23 +377,6 @@ def main(modelname, dataset_name, dataset_split, res_folder, case, mode, human_l
 
             if 't5' in model_case and mode in ['contrastive', 'foil']:
                 foil = model_xai.foil
-
-            # if mode == 'contrastive':
-            #     R_all = []
-            #     for y_ in range(len(labels)):
-            #         relevance_, _, _ = compute_lrp_explanation(model_components,
-            #                                                    model_inputs,
-            #                                                    logit_function=lambda x: x[:, y_],
-            #                                                    model_case=model_case,
-            #                                                    return_gradient_norm=return_gradient_norm)
-            #         R_all.append(relevance_)
-            #     R_all = np.array(R_all)
-
-            if False:
-                # just to check if models give same outputs
-                print(model(**model_inputs).logits)
-                print(logits)
-                print()
 
             Ls.append(selected_logit)
             Rs.append(relevance.sum())
