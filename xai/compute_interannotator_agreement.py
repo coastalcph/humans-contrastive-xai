@@ -1,17 +1,16 @@
 import matplotlib.pyplot as plt
 from sklearn.metrics import cohen_kappa_score
 import numpy as np
-from xai.xai_utils.prodigy_annotations_utils import read_annotations, EXCLUDED_ANNOTATORS, EXCLUDED__SCREEN_ANNOTATORS
+from xai.xai_utils.annotations_utils import read_annotations
 
 CONTRASTIVE_COMMON_SET = 9
 CONTRASTIVE_FILENAME = "contrastive_screening"
 STANDARD_COMMON_SET = 12
-STANDARD_FILENAME = "standard_biosbias_rationales"
+SETTING = "standard"
 METRIC = cohen_kappa_score
 
 # Compute inter-annotator agreement
-annotations, annotations_metadata = read_annotations(STANDARD_FILENAME, label_name='all',
-                                                     exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+annotations = read_annotations(SETTING, label_name='all')
 
 # Compute inter-annotator agreement
 annotators = {}

@@ -7,25 +7,24 @@ import click
 from os.path import join
 from tqdm import tqdm
 from xai.xai_utils.tokenization_utils import merge_subwords_words
-from xai.xai_utils.prodigy_annotations_utils import aggregate_annotations, EXCLUDED_ANNOTATORS
+from xai.xai_utils.annotations_utils import aggregate_annotations
 
 @click.command()
 @click.option('--modelname', default="coastalcph/gpt2-small-biosbias", help='path to finetuned model on hf')
 @click.option('--model_type', default="gpt2", help='Model type')
 @click.option('--importance_aggregator', default="max", help='aggregation method (max, mean, sum)')
 @click.option('--dataset_name', default="biosbias", help='name of dataset_name')
-@click.option('--annotations_filename', default='standard_biosbias_rationales')
+@click.option('--setting', default='standard')
 @click.option('--correct_only', is_flag=True)
 @click.option('--results_dir', default='./results')
 @click.option('--xai_method', default='lrp')
-def main(modelname, model_type, importance_aggregator, dataset_name, annotations_filename, correct_only, results_dir, xai_method):
+def main(modelname, model_type, importance_aggregator, setting, annotations_filename, correct_only, results_dir, xai_method):
 
     res_dir = join(results_dir, 'human-model')
     set_up_dir(res_dir)
 
     # Load aggregated human annotations
-    ANNOTATIONS, _ = aggregate_annotations(annotations_filename=annotations_filename, aggregation_method='majority',
-                                           exclude_annotators=EXCLUDED_ANNOTATORS)
+    ANNOTATIONS = aggregate_annotations(setting=setting, aggregation_method='majority')
 
     # Normalize annotation names
     ANNOTATIONS = {re.sub('[^a-z]', '', key.lower()): value for key, value in ANNOTATIONS.items()}

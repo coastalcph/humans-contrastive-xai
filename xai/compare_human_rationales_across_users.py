@@ -2,7 +2,7 @@ import pickle
 import re
 from os.path import join
 import click
-from xai.xai_utils.prodigy_annotations_utils import read_annotations, EXCLUDED_ANNOTATORS
+from xai.xai_utils.annotations_utils import read_annotations
 from sklearn.metrics import cohen_kappa_score, f1_score
 from nltk.corpus import stopwords
 import numpy as np
@@ -55,15 +55,14 @@ def fleiss_kappa(rater1_results, rater2_results):
 
 
 @click.command()
-@click.option('--annotations_filename', default='contrastive_biosbias_rationales')
-def main(annotations_filename):
+@click.option('--setting', default='contrastive')
+def main(setting):
 
     f1_scores = {}
     cohen_kappas = {}
     fleiss_kappas = {}
     for medical_occupation in ['psychologist', 'surgeon', 'nurse', 'dentist', 'physician', 'all']:
-        ANNOTATIONS, _ = read_annotations(annotations_filename=annotations_filename, label_name=medical_occupation,
-                                                   exclude_annotators=EXCLUDED_ANNOTATORS)
+        ANNOTATIONS = read_annotations(setting=setting, label_name=medical_occupation)
         ANNOTATIONS = {re.sub('[^a-z]', '', key.lower()): value for key, value in ANNOTATIONS.items()}
         ANNOTATIONS = {annotation_id: [ANNOTATIONS[annotation_id][annotator_id] for annotator_id in ANNOTATIONS[annotation_id]][:3]
                                 for annotation_id in ANNOTATIONS if len(ANNOTATIONS[annotation_id]) >= 3}
@@ -101,7 +100,7 @@ def main(annotations_filename):
     print('-' * 100)
     print()
 
-    pickle.dump(cohen_kappas, open(join('../results', f'{annotations_filename}_scores.pkl'), 'wb'))
+    pickle.dump(cohen_kappas, open(join('../results', f'{setting}_bios_rationales_scores.pkl'), 'wb'))
 
 
 if __name__ == "__main__":

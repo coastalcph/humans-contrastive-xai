@@ -15,7 +15,7 @@ from xai.xai_utils.xai_gpt2 import GPT2ForSequenceClassificationXAI
 from xai.xai_utils.xai_t5 import T5ForConditionalGenerationXAI
 
 from xai.xai_utils.xai_utils import plot_conservation, compute_lrp_explanation
-from xai.xai_utils.prodigy_annotations_utils import get_human_label_foil_lookup
+from xai.xai_utils.annotations_utils import get_human_label_foil_lookup
 
 from train_models.data_helpers import filter_out_sst2, load_sst2_rationales, filter_out_dynasent, fix_dynasent, \
     load_dynasent_rationales

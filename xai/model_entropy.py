@@ -1,11 +1,9 @@
 import pickle
 import pandas as pd
-import scipy
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
-import re
 import scipy
 from os.path import join
 

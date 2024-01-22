@@ -6,13 +6,9 @@ import numpy as np
 import pandas as pd
 from os.path import join
 from collections import Counter, OrderedDict
-from xai.xai_utils.prodigy_annotations_utils import read_annotations, aggregate_annotations, \
-    EXCLUDED_ANNOTATORS, EXCLUDED__SCREEN_ANNOTATORS
+from xai.xai_utils.annotations_utils import read_annotations, aggregate_annotations
 from xai.xai_utils.tokenization_utils import merge_subwords_words
-
-STANDARD_FILENAME = "standard_biosbias_rationales"
-CONTRASTIVE_FILENAME = "contrastive_biosbias_rationales"
-
+from datasets import load_dataset
 
 def preview_rationales_2_print(rationales):
     """
@@ -41,17 +37,17 @@ def analyze_annotator_rationales(gender_wordlist, class_names):
     nlp = spacy.load('en_core_web_sm')
     preview = []
     preview_tagging_rationales_pos = []
+    labels = load_dataset('coastalcph/medical-bios', 'rationales', split='test')['label']
 
-    for fname in [STANDARD_FILENAME, CONTRASTIVE_FILENAME]:
+    for setting in ["standard", "contrastive"]:
         rationale_length = []
-        annotations, annotations_metadata = read_annotations(fname, label_name='all',
-                                                             exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
-        rationales = aggregate_annotations(fname, aggregation_method='majority',
-                                           exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+        annotations = read_annotations(setting, label_name='all')
+        rationales = aggregate_annotations(setting, aggregation_method='majority')
+        labels = {text: label for label, text in zip(labels, annotations)}
 
         examples = sorted(list(annotations.keys()))
         rationales = OrderedDict(sorted(rationales[0].items()))
-        print(f"\nAnalysing {fname}. {len(examples)} examples.")
+        print(f"\nAnalysing {setting}. {len(examples)} examples.")
 
         docs = nlp.pipe(examples)
         tagging_pos = {}
@@ -78,7 +74,7 @@ def analyze_annotator_rationales(gender_wordlist, class_names):
                 tagging_rationales_pos[example].append(tagging_[w[0]])
                 text=w[0].lower()
                 if text in list(gender_wordlist.keys()) and gender_wordlist[text] != 'n':
-                    y_true = annotations_metadata[example]["label"]
+                    y_true = labels[example]
                     gender[y_true].append(gender_wordlist[text])
             rationale_length.append(len(rationale_selection))
 
@@ -129,12 +125,10 @@ def analyze_model_rationales(root_dir_, gender_wordlist, dataset, xai_method,
 
     if examples_annotated_only:
         # Read annotations
-        annotations, _ = read_annotations(STANDARD_FILENAME, label_name='all',
-                                          exclude_annotators=EXCLUDED_ANNOTATORS+EXCLUDED__SCREEN_ANNOTATORS)
+        annotations = read_annotations("standard", label_name='all')
         annotations = [re.sub('[^a-z]', '', text.lower()) for text in list(annotations.keys())]
 
-        rationales_ = aggregate_annotations(STANDARD_FILENAME, aggregation_method='majority',
-                                           exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+        rationales_ = aggregate_annotations("contrastive", aggregation_method='majority')
         rationales_length = OrderedDict()
         for text, v in sorted(rationales_[0].items()):
             rationales_length[re.sub('[^a-z]', '', text.lower())] = list(filter(lambda x: x[1] == 1, v))

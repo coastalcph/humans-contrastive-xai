@@ -223,7 +223,7 @@ def main():
             labels_names = ['Amphibian', 'Arachnid', 'Bird', 'Crustacean', 'Fish', 'Insect', 'Mollusca', 'Reptile']
         num_labels = len(label_list)
         text_column_name = 'text'
-    elif data_args.dataset_name == 'coastalcph/xai_fairness_benchmark':
+    elif data_args.dataset_name == 'coastalcph/medical-bios':
         label_list = [0, 1, 2, 3, 4]
         labels_names = ['psychologist', 'surgeon', 'nurse', 'dentist', 'physician']
         num_labels = len(label_list)

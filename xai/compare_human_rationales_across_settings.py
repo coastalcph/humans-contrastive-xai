@@ -2,7 +2,7 @@ import pickle
 import re
 from os.path import join
 import click
-from xai.xai_utils.prodigy_annotations_utils import aggregate_annotations, EXCLUDED_ANNOTATORS
+from xai.xai_utils.annotations_utils import aggregate_annotations
 from utils import set_up_dir
 from sklearn.metrics import cohen_kappa_score, f1_score
 import numpy as np
@@ -56,12 +56,10 @@ def main(results_dir):
         cohen_kappas = {}
         fleiss_kappas = {}
         for medical_occupation in ['psychologist', 'surgeon', 'nurse', 'dentist', 'physician', 'all']:
-            STANDARD_ANNOTATIONS, _ = aggregate_annotations(annotations_filename='standard_biosbias_rationales', aggregation_method=aggregation_method, label_name=medical_occupation,
-                                                            exclude_annotators=EXCLUDED_ANNOTATORS)
+            STANDARD_ANNOTATIONS = aggregate_annotations(setting='standard', aggregation_method=aggregation_method, label_name=medical_occupation)
             STANDARD_ANNOTATIONS = {re.sub('[^a-z]', '', key.lower()): value for key, value in STANDARD_ANNOTATIONS.items()}
 
-            CONTRASTIVE_ANNOTATIONS, _ = aggregate_annotations(annotations_filename='contrastive_biosbias_rationales', aggregation_method=aggregation_method, label_name=medical_occupation,
-                                                               exclude_annotators=EXCLUDED_ANNOTATORS)
+            CONTRASTIVE_ANNOTATIONS = aggregate_annotations(setting='contrastive', aggregation_method=aggregation_method, label_name=medical_occupation)
             CONTRASTIVE_ANNOTATIONS = {re.sub('[^a-z]', '', key.lower()): value for key, value in CONTRASTIVE_ANNOTATIONS.items()}
 
             shared_samples = 0

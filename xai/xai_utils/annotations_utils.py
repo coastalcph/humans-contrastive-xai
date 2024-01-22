@@ -1,17 +1,18 @@
 import json
 import spacy
+from datasets import load_dataset
 # Load  SpaCy model
 NLP_ENGINE = spacy.load('en_core_web_sm', disable=['ner', 'parser'])
 import numpy as np
 from data import DATA_DIR
-from tokenization_utils import merge_subwords_words
+from .tokenization_utils import merge_subwords_words
 EXCLUDED_ANNOTATORS = ['bios_batch_1_v2-12345', 'bios_batch_4-[prolific-id]', 'bios_batch_4-607717eaae6e81fa5a889d7f',
                        'bios_batch_4_repeated-5a8367b9190420000155ec2a', 'bios_batch_3-[612cecf6ebfcc62494f287eb]']
 EXCLUDED__SCREEN_ANNOTATORS = ['5c85963b2421a3000142f159', '6131d01bc956974e057e9f72', '60fc0e57aed2db659b10be32',
                                '60ef2e52a188d9859f92bb58', 'id', 'ilias', '611d088b4a63306f79950cc9']
 
 
-def read_annotations(annotations_filename: str, label_name: str='all', exclude_annotators: list=[]):
+def read_annotations(setting: str, label_name: str='all'):
     """
     Read annotations from jsonl file
     :param annotations_filename: filename of JSONL annotations' file
@@ -20,38 +21,38 @@ def read_annotations(annotations_filename: str, label_name: str='all', exclude_a
     :return: Dict of rationales per example, Dict of metadata per example
     """
     annotations = {}
-    annotations_metadata = {}
-    with open(f'{DATA_DIR}/rationales-biosbias/{annotations_filename}.jsonl') as file:
-        for line in file:
-            data = json.loads(line)
-            if sum([1 if ann_id in data['_annotator_id'] else 0 for ann_id in exclude_annotators]) == 0 and 'spans' in data and (data['label'] == label_name or label_name == 'all'):
-                tokens = [token['text'] for token in data['tokens']]
-                rationales = [0] * len(tokens)
-                for span in data['spans']:
-                    rationales[span['token_start']: span['token_end'] + 1] = [1] * (span['token_end'] - span['token_start'] + 1)
-                if data['text'].split('Bio: ')[-1] not in annotations:
-                    annotations[data['text'].split('Bio: ')[-1]] = {data['_annotator_id']: [(token, rationale) for token, rationale in zip(tokens, rationales)]}
-                    annotations_metadata[data['text'].split('Bio: ')[-1]] = {'label': data['label'], 'foil': data['foil'].lower() if 'foil' in data else None, 'second_best': data['second_best']}
-                else:
-                    annotations[data['text'].split('Bio: ')[-1]][data['_annotator_id']] = [(token, rationale) for token, rationale in zip(tokens, rationales)]
-        return annotations, annotations_metadata
+    dataset = load_dataset('coastalcph/medical-bios', 'rationales', split='test')
+    label_id = dataset.features['label'].names.index(label_name) if label_name != 'all' else None
+    if label_id is not None:
+        dataset = dataset.filter(lambda example: example['label'] == label_id)
+    for example in dataset:
+        for idx in range(len(example['annotations'])):
+            if example['text'] in annotations:
+                annotations[example['text']][idx] = [(token, annotation) for token, annotation in zip(example['words'], example['annotations' if setting == 'standard' else 'contrastive_annotations'][idx])]
+            else:
+                annotations[example['text']] = {idx: [(token, annotation) for token, annotation in zip(example['words'], example['annotations' if setting == 'standard' else 'contrastive_annotations'][idx])]}
+    return annotations
 
 
-def aggregate_annotations(annotations_filename: str, aggregation_method='majority', label_name: str='all', exclude_annotators=[]):
+def aggregate_annotations(setting: str, aggregation_method='majority', label_name: str='all'):
     """
     Aggregate annotations from jsonl file
-    :param annotations_filename: filename of JSONL annotations' file
+    :param setting: standard or contrastive
     :param aggregation_method: Method to aggregate annotations. Options: 'majority', 'mean', 'full_overlap', 'any'
     :param label_name: label name to filter annotations
     :return: List of aggregated rationales per example
     """
-    annotations, annotations_metadata = read_annotations(annotations_filename, label_name=label_name, exclude_annotators=exclude_annotators)
+    dataset = load_dataset('coastalcph/medical-bios', 'rationales', split='test')
+    label_id = dataset.features['label'].names.index(label_name) if label_name != 'all' else None
+    if label_id is not None:
+        dataset = dataset.filter(lambda example: example['label'] == label_id)
     aggregated_rationales = {}
-    for key, value in annotations.items():
+    for document in dataset:
+        key = document['text']
         aggregated_rationales[key] = []
-        tokens = [token for token, rationale in value[list(value.keys())[0]]]
-        for annotator, annotation in value.items():
-            aggregated_rationales[key].append([rationale for token, rationale in annotation])
+        tokens = document['words']
+        for annotation in document['annotations' if setting == 'standard' else 'contrastive_annotations']:
+            aggregated_rationales[key].append(annotation)
         aggregated_rationales[key] = np.asarray(aggregated_rationales[key])
         if aggregation_method == 'majority':
             aggregated_rationales[key] = (np.mean(aggregated_rationales[key], axis=0) > 0.5).astype(int)
@@ -61,10 +62,9 @@ def aggregate_annotations(annotations_filename: str, aggregation_method='majorit
             aggregated_rationales[key] = (np.mean(aggregated_rationales[key], axis=0) > 0).astype(int)
         elif aggregation_method == 'full_overlap':
             aggregated_rationales[key] = (np.mean(aggregated_rationales[key], axis=0) == 1).astype(int)
-        start_index = tokens.index('Bio') + 2
-        aggregated_rationales[key] = [(token, rationale) for token, rationale in zip(tokens, aggregated_rationales[key])][start_index:]
+        aggregated_rationales[key] = [(token, rationale) for token, rationale in zip(tokens, aggregated_rationales[key])]
 
-    return aggregated_rationales, annotations_metadata
+    return aggregated_rationales
 
 
 def preview_rationales(rationales):
@@ -110,18 +110,16 @@ def align_subwords_text(text, subwords, importance_scores, model_type='roberta',
 
 if __name__ == '__main__':
     # Load human rationales
-    annotations, annotations_metadata = read_annotations('standard_biosbias_rationales', label_name='all',
-                                                         exclude_annotators=EXCLUDED_ANNOTATORS)
+    annotations, annotations_metadata = read_annotations('standard', label_name='all')
 
     # Aggregate human rationales
-    rationales = aggregate_annotations('standard_biosbias_rationales', aggregation_method='majority',
-                                       exclude_annotators=EXCLUDED_ANNOTATORS)
+    rationales = aggregate_annotations('standard', aggregation_method='majority')
     # Preview rationales
     preview_rationales(rationales)
 
     # Load dataset
     from datasets import load_dataset
-    dataset = load_dataset('coastalcph/xai_fairness_benchmark', 'biosbias', split='test', use_auth_token='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')
+    dataset = load_dataset('coastalcph/medical-bios', 'rationales', split='test')
 
     # Load tokenizer
     from transformers import AutoTokenizer
@@ -145,20 +143,16 @@ if __name__ == '__main__':
 
 def get_human_label_foil_lookup():    
     import re
-    STANDARD_FILENAME = "standard_biosbias_rationales"
-    CONTRASTIVE_FILENAME = "contrastive_biosbias_rationales"
     
-    _, annotations_metadata_standard = read_annotations(STANDARD_FILENAME, label_name='all',
-                                                         exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+    _, annotations_metadata_standard = read_annotations("standard", label_name='all')
 
-    _, annotations_metadata_contrastive = read_annotations(CONTRASTIVE_FILENAME, label_name='all',
-                                                         exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+    _, annotations_metadata_contrastive = read_annotations("contrastive", label_name='all')
         
     label_foil_lookup = {}
     
     for key in annotations_metadata_contrastive.keys():
         
-        assert annotations_metadata_standard[key]['label'] ==  annotations_metadata_contrastive[key]['label']
+        assert annotations_metadata_standard[key]['label'] == annotations_metadata_contrastive[key]['label']
         label = annotations_metadata_contrastive[key]['label']
         foil = annotations_metadata_contrastive[key]['foil']
         

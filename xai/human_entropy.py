@@ -5,24 +5,16 @@ import matplotlib.pyplot as plt
 import re
 import scipy
 
-from xai.xai_utils.prodigy_annotations_utils import read_annotations, aggregate_annotations, \
-    EXCLUDED_ANNOTATORS, EXCLUDED__SCREEN_ANNOTATORS
+from xai.xai_utils.annotations_utils import read_annotations, aggregate_annotations
 
-STANDARD_FILENAME = "standard_biosbias_rationales"
-CONTRASTIVE_FILENAME = "contrastive_biosbias_rationales"
+annotations_standard = read_annotations("standard", label_name='all')
 
-annotations_standard, annotations_metadata_standard = read_annotations(STANDARD_FILENAME, label_name='all',
-                                                     exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
-
-annotations_contrastive, annotations_metadata_contrastive = read_annotations(CONTRASTIVE_FILENAME, label_name='all',
-                                                     exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+annotations_contrastive = read_annotations("contrastive", label_name='all')
 
 
-rationales_standard,_ = aggregate_annotations(STANDARD_FILENAME, aggregation_method='majority',
-                                   exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+rationales_standard = aggregate_annotations("standard", aggregation_method='majority')
 
-rationales_contrastive,_ = aggregate_annotations(CONTRASTIVE_FILENAME, aggregation_method='majority',
-                                   exclude_annotators=EXCLUDED_ANNOTATORS + EXCLUDED__SCREEN_ANNOTATORS)
+rationales_contrastive = aggregate_annotations("contrastive", aggregation_method='majority')
 
 
 keys = [re.sub('[^a-z]', '', text.lower()) for text in list(rationales_standard.keys())]
@@ -30,10 +22,9 @@ keys = [re.sub('[^a-z]', '', text.lower()) for text in list(rationales_standard.
 entropy_scores = {'human': {'contrastive': [], 'non-contrastive': [], 'max':[], 'min':[]}}
 
 
-
 for  data, name in [(rationales_standard, 'non-contrastive'), (rationales_contrastive, 'contrastive')]:
     
-    data = {re.sub('[^a-z]', '', text.lower()):v for text,v in data.items()}
+    data = {re.sub('[^a-z]', '', text.lower()): v for text, v in data.items()}
     
     for k in keys:
         rs = data[k]
@@ -64,6 +55,6 @@ ax.hlines(y=entropy_max,  xmin=-0.5, xmax=1.5, color='black', linestyle='--')
 ax.set_ylabel('entropy')
 plt.show()
 
-e_ttest = scipy.stats.ttest_ind([x for x in entropy_df['contrastive'] if np.isnan(x)==False],
-                                [x for x in entropy_df['non-contrastive']if np.isnan(x)==False])
+e_ttest = scipy.stats.ttest_ind([x for x in entropy_df['contrastive'] if np.isnan(x) == False],
+                                [x for x in entropy_df['non-contrastive']if np.isnan(x) == False])
 print(e_ttest)
